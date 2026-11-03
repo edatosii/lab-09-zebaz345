@@ -70,14 +70,17 @@ public class EstudianteDAO {
         }
     }
 
-     // =====================================================================
+    // =====================================================================
     // ETAPA 2. Listar (SELECT)
+    // =====================================================================
+
 /**
  * @return todos los estudiantes ordenados por id;
- *         lista vacía si no hay o si hay un error.
+ *         lista vacía si no hay estudiantes o si ocurre un error.
  */
 public List<Estudiante> listar() {
     List<Estudiante> estudiantes = new ArrayList<>();
+
     String sql = "SELECT id, nombre, correo, semestre FROM estudiantes ORDER BY id";
 
     try (Connection con = ConexionBD.conectar();
@@ -97,20 +100,41 @@ public List<Estudiante> listar() {
 
     } catch (SQLException e) {
         System.out.println("Error al listar estudiantes: " + e.getMessage());
-        return new ArrayList<>();
     }
 
     return estudiantes;
 }
+
     // =====================================================================
     // ETAPA 3. Buscar por id (SELECT ... WHERE)
     // =====================================================================
 
     /** @return el estudiante con ese id, o null si no existe (o si hay un error) */
     public Estudiante buscarPorId(int id) {
-        // TODO Etapa 3: SELECT id, nombre, correo, semestre FROM estudiantes WHERE id = ?
-        throw new UnsupportedOperationException("TODO: buscarPorId");
+    String sql = "SELECT id, nombre, correo, semestre FROM estudiantes WHERE id = ?";
+
+    try (Connection con = ConexionBD.conectar();
+         PreparedStatement ps = con.prepareStatement(sql)) {
+
+        ps.setInt(1, id);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return new Estudiante(
+                    rs.getInt("id"),
+                    rs.getString("nombre"),
+                    rs.getString("correo"),
+                    rs.getInt("semestre")
+                );
+            }
+        }
+
+    } catch (SQLException e) {
+        System.out.println("Error al buscar estudiante: " + e.getMessage());
     }
+
+    return null;
+}
 
     // =====================================================================
     // ETAPA 4. Actualizar (UPDATE)
@@ -123,9 +147,23 @@ public List<Estudiante> listar() {
      *         (por ejemplo, correo ya usado por OTRO estudiante)
      */
     public boolean actualizar(Estudiante estudiante) {
-        // TODO Etapa 4: UPDATE estudiantes SET nombre = ?, correo = ?, semestre = ? WHERE id = ?
-        throw new UnsupportedOperationException("TODO: actualizar");
+    String sql = "UPDATE estudiantes SET nombre = ?, correo = ?, semestre = ? WHERE id = ?";
+
+    try (Connection con = ConexionBD.conectar();
+         PreparedStatement ps = con.prepareStatement(sql)) {
+
+        ps.setString(1, estudiante.getNombre());
+        ps.setString(2, estudiante.getCorreo());
+        ps.setInt(3, estudiante.getSemestre());
+        ps.setInt(4, estudiante.getId());
+
+        return ps.executeUpdate() > 0;
+
+    } catch (SQLException e) {
+        System.out.println("Error al actualizar estudiante: " + e.getMessage());
+        return false;
     }
+}
 
     // =====================================================================
     // ETAPA 5. Eliminar (DELETE)
@@ -133,7 +171,18 @@ public List<Estudiante> listar() {
 
     /** @return true si se eliminó; false si no existía ese id o si hubo un error */
     public boolean eliminar(int id) {
-        // TODO Etapa 5: DELETE FROM estudiantes WHERE id = ?
-        throw new UnsupportedOperationException("TODO: eliminar");
+    String sql = "DELETE FROM estudiantes WHERE id = ?";
+
+    try (Connection con = ConexionBD.conectar();
+         PreparedStatement ps = con.prepareStatement(sql)) {
+
+        ps.setInt(1, id);
+
+        return ps.executeUpdate() > 0;
+
+    } catch (SQLException e) {
+        System.out.println("Error al eliminar estudiante: " + e.getMessage());
+        return false;
     }
+}
 }
